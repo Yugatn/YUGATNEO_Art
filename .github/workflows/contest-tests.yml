@@ -1,0 +1,42 @@
+name: Contest rules and calculations
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'app.mjs'
+      - 'index.html'
+      - 'styles.css'
+      - '.github/workflows/contest-tests.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'app.mjs'
+      - 'index.html'
+      - 'styles.css'
+      - '.github/workflows/contest-tests.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          node --check src/contest-core.mjs
+          node --check app.mjs
+          node --check tests/contest-core.test.mjs
+      - name: Check mathematical and policy invariants
+        run: node --test tests/*.test.mjs
+      - name: Confirm offline prototype has no payment collection
+        run: |
+          test -f index.html
+          test -f styles.css
+          test -f app.mjs
+          grep -q 'не открыты' index.html
